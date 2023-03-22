@@ -133,13 +133,13 @@ def robin_buy(stock):
 
     cash = float(r.profiles.load_account_profile()['buying_power'])
 
-    if stock[0] not in holdings and float(r.stocks.get_latest_price(stock[0], priceType = 'ask_price')[0]) < cash:
-        r.orders.order(stock[0], 1, 'buy', limitPrice = float(r.stocks.get_latest_price(stock[0], priceType = 'ask_price')[0]), timeInForce = 'gfd')
+    if stock not in holdings and float(r.stocks.get_latest_price(stock, priceType = 'ask_price')[0]) < cash:
+        r.orders.order(stock, 1, 'buy', limitPrice = float(r.stocks.get_latest_price(stock, priceType = 'ask_price')[0]), timeInForce = 'gfd')
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
-    if stock[0] in holdings:
-        print('Bought ', stock[0], " in RH Brokerage")
+    if stock in holdings:
+        print('Bought ', stock, " in RH Brokerage")
 
     r.authentication.logout()
 
