@@ -9,7 +9,8 @@ import undetected_chromedriver as uc
 from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 import os
 from dotenv import load_dotenv
-def fid_buy(stock):
+from dotenv import dotenv_values
+def fid_buy(stocks):
     '''
     Fidelity - using selenium to "manually" submit tickets.
     Process: login -> loop through accounts -> check if they can trade stocks -> open trade ticket
@@ -24,85 +25,86 @@ def fid_buy(stock):
     # Exclusions
     def exclusions():
         # exclude 401K accounts
-        txt = WebDriverWait(driver, 12).until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "portfolio-card-container__banner"]'))).text
+        txt = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "portfolio-card-container__banner"]'))).text
         if "401K" in txt:
             return True
         else:
             return False
 
-    def fid_buy_modal(stock):
+    def fid_buy_modal():
         # Open Trade Modal
-        try:
-            element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.LINK_TEXT, "Trade")))
-        except StaleElementReferenceException:
-            element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.LINK_TEXT, "Trade")))
-
+        element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Trade")))
         element.click()
 
         # Loop through stocks
-        for s in stock:
+        for s in stocks:
             # Enter symbol
-            element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
-            element.send_keys(s[0])
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
+            element.send_keys(s)
 
             # Enter number of shares
-            element = WebDriverWait(driver, 12).until(
-                EC.element_to_be_clickable((By.XPATH, '//div[@class = "eqt-quantity__container input-label-in-field"]')))
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-shared-quantity')))
             element.send_keys(1)
 
             # Press buy, shares, day, and limit
-            element = WebDriverWait(driver, 12).until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]')))
+            element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]')))
             for el in element:
                 if el.text == "Buy" or el.text == "Shares" or el.text == "Limit" or el.text == "Day":
                     el.click()
 
             # Input last price
-            last_price = WebDriverWait(driver, 12).until(
-                EC.element_to_be_clickable((By.XPATH, '//div[@class = "last-price"]'))).text
+            last_price = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket__last-price'))).text
 
-            element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'limit-price')))
+            element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-ordsel-limit-price-field')))
             element.send_keys(last_price)
 
-            # Press buy
-            element = WebDriverWait(driver, 12).until(
-                EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
+            # Press preview and buy
+            element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
             element.click()
 
-            element = WebDriverWait(driver, 12).until(
-                EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
+            element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
+            element.click()
+
+            # Close Modal
+            element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
             element.click()
 
         return
 
+    driver = uc.Chrome()
     driver.get("https://fidelity.com")
-    element = WebDriverWait(driver, 12).until(EC.element_to_be_clickable((By.CLASS_NAME, "last-child")))
+    wait = WebDriverWait(driver, 10)
+
+    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "last-child")))
     element.click()
 
     # Login
-    element = WebDriverWait(driver, 12).until(EC.element_to_be_clickable((By.CLASS_NAME, "fs-mask-username")))
-    element.send_keys(FIDELITY_USERNAME)
-    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'password')))
-    element.send_keys(FIDELITY_PASSWORD)
-    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
+    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "fs-mask-username")))
+    element.send_keys(os.getenv("FIDELITY_USERNAME"))
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'password')))
+    element.send_keys(os.getenv("FIDELITY_PASSWORD"))
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
     element.click()
 
     # Get all accounts
-    try:
-        element = WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
-    except StaleElementReferenceException:
-        element = WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
+    accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
 
     # Loop through accounts
-    for el in element:
-        el.click()
+    for account in accounts:
+        account.click()
 
         if not exclusions():
-            fid_buy_modal(stock)
+            fid_buy_modal()
+
+    print("Bought ", RS, " in Fidelity")
 
     # Logout
-    element = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "pnls last-child"]')))
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "pntlt"]')))
+    element = element.find_element(By.XPATH, '//a[@target = "_top"]')
     element.click()
 
+    # Close
+    driver.quit()
 def robin_buy(stock):
     '''
     Robinhood - using robin_stocks but there is an api.
@@ -113,9 +115,8 @@ def robin_buy(stock):
     '''
 
     import robin_stocks.robinhood as r
-    #import robin_stocks.robinhood as rs_login
 
-    login = r.authentication.login(ROBINHOOD_USERNAME, ROBINHOOD_PASSWORD)
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"))
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
@@ -130,15 +131,15 @@ def robin_buy(stock):
     Technologies', 'id': 'f90de184-4f73-4aad-9a5f-407858013eb1', 'pe_ratio': None, 'percentage': '3.30'},
     '''
 
-    cash = r.profiles.load_account_profile()['buying_power']
+    cash = float(r.profiles.load_account_profile()['buying_power'])
 
-    if stock[0] not in holdings and r.stocks.get_latest_price(stock[0], priceType = 'ask_price') < cash:
-        r.orders.order(stock[0], 1, 'buy', limitPrice = r.stocks.get_latest_price(stock[0], priceType = 'ask_price'), timeInForce = 'gfd')
+    if stock[0] not in holdings and float(r.stocks.get_latest_price(stock[0], priceType = 'ask_price')[0]) < cash:
+        r.orders.order(stock[0], 1, 'buy', limitPrice = float(r.stocks.get_latest_price(stock[0], priceType = 'ask_price')[0]), timeInForce = 'gfd')
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
     if stock[0] in holdings:
-        print('Bought:', stock[0])
+        print('Bought ', stock[0], " in RH Brokerage")
 
     r.authentication.logout()
 
@@ -151,29 +152,27 @@ TO-DO:
 - Track and sell
 '''
 load_dotenv()
-driver = uc.Chrome()
 
 # Get inputs
-accounts = {}
-RS = set()
+RS = {}
 
 # Take inputs
-'''
 print("Enter stock ticker and exchange i.e. 'VTI,Nasdaq'\nTo end input, enter 'done': ")
 val = str(input())
 while 1 == 1:
     if val.strip().lower() == 'done':
         break
     val = val.split(',')
-    RS.add((val[0].strip().upper(), val[1].strip().upper()))
+    RS[val[0].strip().upper()] = val[1].strip().upper()
     val = str(input("Enter another:\n"))
-'''
+
 # Loop through the exchanges and pick brokers
 ##stocks = [i[1] for i in RS]
 
 # Trade in brokers
-RS = {('O', 'NYSE')} # For testing purposes
-for stock in RS:
+#RS = {'O':'NYSE'} # For testing purposes
 
-    fid_buy(stock)
+for stock in RS.keys():
     robin_buy(stock)
+
+fid_buy(RS.keys())
