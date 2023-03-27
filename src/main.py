@@ -1,17 +1,13 @@
 import os
 from dotenv import load_dotenv
-from webdriver_manager.chrome import ChromeDriverManager
 import undetected_chromedriver as uc
-from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException, NoSuchElementException
 
 from fidelity import fid_buy, fid_sell
 from robhinhood import robin_buy, robin_sell
+
 
 def first_buy(stocks):
     '''
@@ -24,6 +20,7 @@ def first_buy(stocks):
     - Currently using last price but could use ask price or alert if large spread/dif between last and
         ask and give choice
     '''
+
     driver = uc.Chrome()
     driver.get("https://www.firstrade.com/content/en-us/welcome")
     wait = WebDriverWait(driver, 10)
@@ -45,6 +42,7 @@ TO-DO:
 - Exclusions for brokerage, accounts, etc.
 - Track and sell
 '''
+
 load_dotenv()
 
 # Get inputs
@@ -80,3 +78,4 @@ if len(buy) > 0:
 if len(sell) > 0:
     #robin_sell(sell)
     #fid_sell(sell)
+    print("Sell Operation Not Available Yet.")
