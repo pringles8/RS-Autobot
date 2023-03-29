@@ -1,4 +1,55 @@
-def fid_buy(stocks):
+import os
+from dotenv import load_dotenv
+import time
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+
+load_dotenv()
+
+def open_website(driver, wait):
+    driver.get("https://fidelity.com")
+    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "last-child")))
+    element.click()
+    return driver, wait
+
+def log_in(wait):
+    # Login
+    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "fs-mask-username")))
+    element.send_keys(os.getenv("FIDELITY_USERNAME"))
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'password')))
+    element.send_keys(os.getenv("FIDELITY_PASSWORD"))
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
+    element.click()
+
+    # Click positions new-tab__tab
+    element = wait.until(EC.element_to_be_clickable((By.ID, "portsum-tab-positions")))
+    element.click()
+
+    return
+
+def log_out(wait):
+    # Logout
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "pntlt"]')))
+    element = element.find_element(By.XPATH, '//a[@target = "_top"]')
+    element.click()
+    return
+
+def get_positions(wait):
+    # Get positions posweb-cell-symbol-name pvd-btn btn-anchor
+    try:
+        element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//button[@class = "posweb-cell-symbol-name pvd-btn btn-anchor"]')))
+        if isinstance(element, list):
+            positions = []
+            for el in element:
+                positions.append(el.text)
+        else:
+            positions = [element.text]
+    except:
+        positions = []
+
+    return positions
+
+def fid_buy(stocks, stay_open, driver, wait):
     '''
     Fidelity - using selenium to "manually" submit tickets.
     Process: login -> loop through accounts -> check if they can trade stocks -> open trade ticket
@@ -19,82 +70,71 @@ def fid_buy(stocks):
         else:
             return False
 
-    def fid_buy_modal():
+    def fid_buy_modal(positions):
         # Open Trade Modal
         element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Trade")))
         element.click()
 
         # Loop through stocks
         for s in stocks:
-            # Enter symbol
-            element = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
-            element.send_keys(s)
+            if s not in positions:
+                # Enter symbol
+                element = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
+                element.send_keys(s)
 
-            # Enter number of shares
-            element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-shared-quantity')))
-            element.send_keys(1)
+                # Enter number of shares
+                element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-shared-quantity')))
+                element.send_keys(1)
 
-            # Press buy, shares, day, and limit
-            element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]')))
-            for el in element:
-                if el.text == "Buy" or el.text == "Shares" or el.text == "Limit" or el.text == "Day":
-                    el.click()
+                # Press buy, shares, day, and limit
+                element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]')))
+                for el in element:
+                    if el.text == "Buy" or el.text == "Shares" or el.text == "Limit" or el.text == "Day":
+                        el.click()
 
-            # Input last price
-            last_price = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket__last-price'))).text
+                # Input last price
+                last_price = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket__last-price'))).text
 
-            element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-ordsel-limit-price-field')))
-            element.send_keys(last_price)
+                element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-ordsel-limit-price-field')))
+                element.send_keys(last_price)
 
-            # Press preview and buy
-            element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
-            element.click()
+                # Press preview and buy
+                element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
+                element.click()
 
-            element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
-            element.click()
+                element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
+                element.click()
 
-            # Close Modal
-            element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
-            element.click()
+                # Close Modal
+                element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
+                element.click()
 
         return
 
-    driver = uc.Chrome()
-    driver.get("https://fidelity.com")
-    wait = WebDriverWait(driver, 10)
-
-    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "last-child")))
-    element.click()
-
-    # Login
-    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "fs-mask-username")))
-    element.send_keys(os.getenv("FIDELITY_USERNAME"))
-    element = wait.until(EC.element_to_be_clickable((By.ID, 'password')))
-    element.send_keys(os.getenv("FIDELITY_PASSWORD"))
-    element = wait.until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
-    element.click()
+    open_website(driver, wait)
+    log_in(wait)
+    time.sleep(1)
 
     # Get all accounts
     accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
 
     # Loop through accounts
     for account in accounts:
+        time.sleep(1)
         account.click()
+        positions = get_positions(wait)
+        time.sleep(1)
 
         if not exclusions():
-            fid_buy_modal()
+            fid_buy_modal(positions)
 
-    print("Bought ", RS.keys(), " in Fidelity")
+    print("Bought ", stocks, " in Fidelity")
 
-    # Logout
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "pntlt"]')))
-    element = element.find_element(By.XPATH, '//a[@target = "_top"]')
-    element.click()
+    # Log out
+    if not stay_open:
+        log_out(wait)
 
-    # Close
-    driver.quit()
-
-def fid_sell(stocks):
+def fid_sell(stocks, stay_open, driver, wait):
     '''
     Fidelity - using selenium to "manually" submit tickets.
     Process: login -> loop through accounts -> check if they can trade stocks -> open trade ticket
@@ -113,71 +153,58 @@ def fid_sell(stocks):
         else:
             return False
 
-    def fid_sell_modal():
+    def fid_sell_modal(positions):
         # Open Trade Modal
         element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Trade")))
         element.click()
 
         # Loop through stocks
         for s in stocks:
-            # Enter symbol
-            element = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
-            element.send_keys(s)
+            if s in positions:
+                # Enter symbol
+                element = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
+                element.send_keys(s)
 
-            # Enter number of shares
-            element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-shared-quantity')))
-            element.send_keys(1)
+                # Enter number of shares
+                element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-shared-quantity')))
+                element.send_keys(1)
 
-            # Press buy, shares, day, and limit
-            element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]')))
-            for el in element:
-                if el.text == "Sell" or el.text == "Shares" or el.text == "Market" or el.text == "Day":
-                    el.click()
+                # Press buy, shares, day, and limit
+                element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]')))
+                for el in element:
+                    if el.text == "Sell" or el.text == "Shares" or el.text == "Market" or el.text == "Day":
+                        el.click()
 
-            # Press preview and sell
-            element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
-            element.click()
+                # Press preview and sell
+                element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
+                element.click()
 
-            element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
-            element.click()
+                element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
+                element.click()
 
-            # Close Modal
-            element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
-            element.click()
+                # Close Modal
+                element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
+                element.click()
 
         return
 
-    driver = uc.Chrome()
-    driver.get("https://fidelity.com")
-    wait = WebDriverWait(driver, 10)
-
-    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "last-child")))
-    element.click()
-
-    # Login
-    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "fs-mask-username")))
-    element.send_keys(os.getenv("FIDELITY_USERNAME"))
-    element = wait.until(EC.element_to_be_clickable((By.ID, 'password')))
-    element.send_keys(os.getenv("FIDELITY_PASSWORD"))
-    element = wait.until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
-    element.click()
+    if not stay_open:
+        open_website(driver, wait)
+        log_in(wait)
 
     # Get all accounts
     accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
 
     # Loop through accounts
     for account in accounts:
+        time.sleep(1)
         account.click()
+        positions = get_positions(wait)
+        time.sleep(1)
 
         if not exclusions():
-            fid_sell_modal()
+            fid_sell_modal(positions)
 
-    print("Sold ", RS.keys(), " in Fidelity")
+    print("Sold ", stocks, " in Fidelity")
 
-    # Logout
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "pntlt"]')))
-    element = element.find_element(By.XPATH, '//a[@target = "_top"]')
-    element.click()
-
-    # Close
-    driver.quit()
+    log_out(wait)

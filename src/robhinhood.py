@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 def robin_buy(stocks):
     '''
     Robinhood - using robin_stocks but there is an api.

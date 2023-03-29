@@ -52,6 +52,7 @@ sell = []
 #sell = ['O'] # For testing purposes
 
 # Take inputs
+
 print("Enter stock ticker and side of order i.e. 'vti,buy'\nTo end input, enter 'done': ")
 val = str(input())
 while 1 == 1:
@@ -70,12 +71,45 @@ while 1 == 1:
 ##stocks = [i[1] for i in RS]
 
 # Trade in brokers
-if len(buy) > 0:
+stay_open = False
+if len(buy) > 0 and len(sell) > 0:
+    stay_open = True
+
+    # API
     robin_buy(buy)
-    fid_buy(buy)
+    obin_sell(sell)
+
+    # Selenium
+    driver = uc.Chrome()
+    wait = WebDriverWait(driver, 10)
+
+    fid_buy(buy, stay_open, driver, wait)
+    fid_sell(buy, stay_open, driver, wait)
+    #first_buy(buy)
+    #first_sell(buy)
+
+    driver.quit()
+elif len(buy) > 0:
+    # API
+    robin_buy(buy)
+
+    # Selenium
+    driver = uc.Chrome()
+    wait = WebDriverWait(driver, 12)
+
+    fid_buy(buy, stay_open, driver, wait)
     #first_buy(buy)
 
-if len(sell) > 0:
-    #robin_sell(sell)
-    #fid_sell(sell)
-    print("Sell Operation Not Available Yet.")
+    driver.quit()
+else:
+    # API
+    robin_sell(sell)
+
+    # Selenium
+    driver = uc.Chrome()
+    wait = WebDriverWait(driver, 10)
+
+    fid_sell(sell, stay_open, driver, wat)
+    #first_buy(buy)
+
+    driver.quit()
