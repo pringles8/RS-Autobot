@@ -20,6 +20,7 @@ def log_in(wait):
     element.send_keys(os.getenv("FIDELITY_PASSWORD"))
     element = wait.until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
     element.click()
+    time.sleep(1)
 
     # Click positions new-tab__tab
     element = wait.until(EC.element_to_be_clickable((By.ID, "portsum-tab-positions")))
@@ -56,7 +57,6 @@ def fid_buy(stocks, stay_open, driver, wait):
     and submit -> after looped through accounts and stocks, logout
 
     TO-DO:
-    - Check if holding stock already
     - Currently using last price but could use ask price or alert if large spread/dif between last and
         ask and give choice
     '''
@@ -105,25 +105,25 @@ def fid_buy(stocks, stay_open, driver, wait):
                 element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
                 element.click()
 
-                # Close Modal
-                element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
-                element.click()
+            # Close Modal
+            element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
+            element.click()
 
         return
 
     open_website(driver, wait)
     log_in(wait)
-    time.sleep(1)
+    time.sleep(5)
 
     # Get all accounts
     accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
 
     # Loop through accounts
     for account in accounts:
-        time.sleep(1)
         account.click()
+
         positions = get_positions(wait)
-        time.sleep(1)
+        time.sleep(3)
 
         if not exclusions():
             fid_buy_modal(positions)
@@ -141,7 +141,7 @@ def fid_sell(stocks, stay_open, driver, wait):
     and submit -> after looped through accounts and stocks, logout
 
     TO-DO:
-    - Check if holding stock already
+    -
     '''
 
     # Exclusions
@@ -182,25 +182,26 @@ def fid_sell(stocks, stay_open, driver, wait):
                 element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
                 element.click()
 
-                # Close Modal
-                element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
-                element.click()
+            # Close Modal
+            element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
+            element.click()
 
         return
 
     if not stay_open:
         open_website(driver, wait)
         log_in(wait)
+        time.sleep(5)
 
     # Get all accounts
     accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
 
     # Loop through accounts
     for account in accounts:
-        time.sleep(1)
+        time.sleep(3)
         account.click()
         positions = get_positions(wait)
-        time.sleep(1)
+        time.sleep(3)
 
         if not exclusions():
             fid_sell_modal(positions)

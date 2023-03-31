@@ -3,7 +3,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def robin_buy(stocks):
+def login():
+    import robin_stocks.robinhood as r
+
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"))
+
+    return r
+
+def robin_buy(stocks, r=None):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -11,10 +18,8 @@ def robin_buy(stocks):
     TO-DO:
     -
     '''
-
-    import robin_stocks.robinhood as r
-
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"))
+    if r is None:
+        r = login()
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
@@ -42,7 +47,7 @@ def robin_buy(stocks):
 
     r.authentication.logout()
 
-def robin_sell(stocks):
+def robin_sell(stocks, r=None):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -51,9 +56,8 @@ def robin_sell(stocks):
     -
     '''
 
-    import robin_stocks.robinhood as r
-
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"))
+    if r is None:
+        r = login()
 
     holdings = r.build_holdings()
     holdings = holdings.keys()

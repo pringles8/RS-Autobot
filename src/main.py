@@ -37,6 +37,7 @@ def first_buy(stocks):
 # Main
 '''
 TO-DO:
+- Add quantity and other defaults into env
 - Add more brokers
 - Vet by exchange/broker pair
 - Exclusions for brokerage, accounts, etc.
@@ -60,9 +61,9 @@ while 1 == 1:
         break
 
     val = val.split(',')
-    if val[1].strip().upper() == 'buy':
+    if val[1].strip().lower() == 'buy':
         buy.append(val[0].strip().upper())
-    if val[1].strip().upper() == 'sell':
+    if val[1].strip().lower() == 'sell':
         sell.append(val[0].strip().upper())
 
     val = str(input("Enter another:\n"))
@@ -76,8 +77,13 @@ if len(buy) > 0 and len(sell) > 0:
     stay_open = True
 
     # API
-    robin_buy(buy)
-    obin_sell(sell)
+    import robin_stocks.robinhood as r
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"))
+
+    robin_buy(buy, r)
+    robin_sell(sell, r)
+
+    r.authentication.logout()
 
     # Selenium
     driver = uc.Chrome()
@@ -109,7 +115,7 @@ else:
     driver = uc.Chrome()
     wait = WebDriverWait(driver, 10)
 
-    fid_sell(sell, stay_open, driver, wat)
+    fid_sell(sell, stay_open, driver, wait)
     #first_buy(buy)
 
     driver.quit()
