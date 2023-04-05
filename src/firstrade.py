@@ -107,10 +107,24 @@ def first_buy(stocks, stay_open, driver, wait):
     open_website(driver, wait)
     log_in(wait)
     time.sleep(1)
-    ------------------------------------------------------------------------------------------
-    # Get all accounts
-    accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
 
+    # Get all accounts
+    # Check for PIN //div[@class="subtitle"]
+    try:
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class="subtitle"]')))
+    except:
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class="subtitle"]')))
+    else:
+        element = None
+
+    if
+    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, 'change_acon')))
+    element.click()
+    element = wait.until(EC.visibility_of_all_elements_located((By.CLASS_NAME, 'change_acon_db')))
+    element = element.find_element(By.XPATH, '//a[@href="javascript:void(0)"]')
+    print(element)
+    return
+'''
     # Loop through accounts
     for account in accounts:
         account.click()
@@ -129,7 +143,7 @@ print("Bought ", stocks, " in Fidelity")
         log_out(wait)
 
     return
-
+'''
 def first_sell(stocks, stay_open, driver, wait):
     '''
     Firstrade - using selenium to "manually" submit tickets.

@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import undetected_chromedriver as uc
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -16,6 +17,7 @@ TO-DO:
 - Add quantity and other defaults into env
 - Add more brokers
 - Vet by exchange/broker pair
+- appium for mobile apps
 - Exclusions for brokerage, accounts, etc.
 - Track and sell
 '''
@@ -77,7 +79,7 @@ elif len(buy) > 0:
 
     # Selenium
     driver = uc.Chrome()
-    wait = WebDriverWait(driver, 12)
+    wait = WebDriverWait(driver, 10)
 
     fid_buy(buy, stay_open, driver, wait)
     #first_buy(buy, stay_open, driver, wait)
