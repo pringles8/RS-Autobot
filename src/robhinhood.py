@@ -1,16 +1,18 @@
 import os
 from dotenv import load_dotenv
+import pyotp
 
 load_dotenv()
 
 def login():
     import robin_stocks.robinhood as r
 
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"))
+    totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP")).now()
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"), expiresIn=1800, store_session=False, mfa_code=totp)
 
     return r
 
-def robin_buy(stocks, r=None):
+def robin_buy(stocks, stay_open, r=None):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -18,7 +20,8 @@ def robin_buy(stocks, r=None):
     TO-DO:
     -
     '''
-    if r is None:
+
+    if not stay_open:
         r = login()
 
     holdings = r.build_holdings()
@@ -45,9 +48,11 @@ def robin_buy(stocks, r=None):
         if stock in holdings:
             print('Bought ', stock, " in RH Brokerage")
 
-    r.authentication.logout()
+    if not stay_open:
+        r.authentication.logout()
+        print("RH Logout Complete.")
 
-def robin_sell(stocks, r=None):
+def robin_sell(stocks, stay_open, r=None):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -56,7 +61,7 @@ def robin_sell(stocks, r=None):
     -
     '''
 
-    if r is None:
+    if not stay_open:
         r = login()
 
     holdings = r.build_holdings()
@@ -82,3 +87,4 @@ def robin_sell(stocks, r=None):
             print('Sold ', stock, " in RH Brokerage")
 
     r.authentication.logout()
+    print("RH Logout Complete.")

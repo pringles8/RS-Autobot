@@ -1,14 +1,11 @@
 import os
 from dotenv import load_dotenv
 import undetected_chromedriver as uc
-from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
-from fidelity import fid_buy, fid_sell
+from fidelity import fid_buy_and_sell
 from robhinhood import robin_buy, robin_sell
-#from firstrade import first_buy
+from firstrade import first_buy_and_sell
 
 # Main
 '''
@@ -36,6 +33,7 @@ print("Enter stock ticker and side of order i.e. 'vti,buy'\nTo end input, enter 
 val = str(input())
 while 1 == 1:
     if val.strip().lower() == 'done':
+        print()
         break
 
     val = val.split(',')
@@ -56,44 +54,59 @@ if len(buy) > 0 and len(sell) > 0:
 
     # API
     import robin_stocks.robinhood as r
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"))
+    totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP")).now()
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"), expiresIn=1800, store_session=False, mfa_code=totp)
 
-    robin_buy(buy, r)
-    robin_sell(sell, r)
-
-    r.authentication.logout()
+    robin_buy(buy, stay_open, r)
+    print("RH Buying Complete.")
+    robin_sell(sell, stay_open, r)
+    print("RH Selling Complete.")
 
     # Selenium
     driver = uc.Chrome()
     wait = WebDriverWait(driver, 10)
 
-    fid_buy(buy, stay_open, driver, wait)
-    fid_sell(buy, stay_open, driver, wait)
-    #first_buy(buy, stay_open, driver, wait)
-    #first_sell(sell, stay_open, driver, wait)
+    fid_buy_and_sell(buy, stay_open, driver, wait, side='Buy')
+    print("Fid Buying Complete.")
+    fid_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
+    print("Fid Selling Complete.")
+    first_buy_and_sell(buy, stay_open, driver, wait, side='Buy')
+    print("First Buying Complete.")
+    first_buy_and_sell(buy, stay_open, driver, wait, side='Sell')
+    print("First Selling Complete.")
 
     driver.quit()
+    print("Driver Quit Complete.")
+
 elif len(buy) > 0:
     # API
-    robin_buy(buy)
+    robin_buy(buy, stay_open)
+    print("RH Buying Complete.")
 
     # Selenium
     driver = uc.Chrome()
     wait = WebDriverWait(driver, 10)
 
-    fid_buy(buy, stay_open, driver, wait)
-    #first_buy(buy, stay_open, driver, wait)
+    fid_buy_and_sell(buy, stay_open, driver, wait, side='Buy')
+    print("Fid Buying Complete.")
+    first_buy_and_sell(buy, stay_open, driver, wait, buy="Buy")
+    print("First Buying Complete.")
 
     driver.quit()
+    print("Driver Quit Complete.")
 else:
     # API
-    robin_sell(sell)
+    robin_sell(sell, stay_open)
+    print("RH Selling Complete.")
 
     # Selenium
     driver = uc.Chrome()
     wait = WebDriverWait(driver, 10)
 
-    fid_sell(sell, stay_open, driver, wait)
-    #first_sell(sell, stay_open, driver, wait)
+    fid_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
+    print("Fid Selling Complete.")
+    first_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
+    print("First Selling Complete.")
 
     driver.quit()
+    print("Driver Quit Complete.")
