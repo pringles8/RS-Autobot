@@ -4,15 +4,15 @@ import pyotp
 
 load_dotenv()
 
-def login():
+def login(num_acct):
     import robin_stocks.robinhood as r
 
-    totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP")).now()
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"), expiresIn=1800, store_session=False, mfa_code=totp)
+    totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP").split(",")[num_acct]).now()
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME").split(",")[num_acct], os.getenv("ROBINHOOD_PASSWORD").split(",")[num_acct], expiresIn=1800, store_session=False, mfa_code=totp)
 
     return r
 
-def robin_buy(stocks, stay_open, r=None):
+def robin_buy(stocks, stay_open, r=None, acct=0):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -22,7 +22,8 @@ def robin_buy(stocks, stay_open, r=None):
     '''
 
     if not stay_open:
-        r = login()
+        num_accts = len(os.getenv("ROBINHOOD_USERNAME").split(","))
+        r = login(acct)
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
@@ -40,7 +41,7 @@ def robin_buy(stocks, stay_open, r=None):
     for stock in stocks:
         cash = float(r.profiles.load_account_profile()['buying_power'])
 
-        if stock not in holdings and float(r.stocks.get_latest_price(stock, priceType = 'ask_price')[0]) < cash:
+        if stock not in holdings and float(r.stocks.get_latest_price(stock, priceType = 'ask_price')[0] or cash) < cash:
             r.orders.order(stock, 1, 'buy', limitPrice = float(r.stocks.get_latest_price(stock, priceType = 'ask_price')[0]), timeInForce = 'gfd')
 
         holdings = r.build_holdings()
@@ -50,9 +51,13 @@ def robin_buy(stocks, stay_open, r=None):
 
     if not stay_open:
         r.authentication.logout()
-        print("RH Logout Complete.")
+        if num_accts != acct + 1:
+            acct += 1
+            robin_sell(stocks, stay_open, acct=acct)
+        else:
+            print("RH Logout Complete.")
 
-def robin_sell(stocks, stay_open, r=None):
+def robin_sell(stocks, stay_open, r=None, acct=0):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -62,7 +67,8 @@ def robin_sell(stocks, stay_open, r=None):
     '''
 
     if not stay_open:
-        r = login()
+        num_accts = len(os.getenv("ROBINHOOD_USERNAME").split(","))
+        r = login(acct)
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
@@ -87,4 +93,9 @@ def robin_sell(stocks, stay_open, r=None):
             print('Sold ', stock, " in RH Brokerage")
 
     r.authentication.logout()
-    print("RH Logout Complete.")
+    if not stay_open:
+        if num_accts != acct + 1:
+            acct += 1
+            robin_sell(stocks, stay_open, acct=acct)
+        else:
+            print("RH Logout Complete.")

@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 
 load_dotenv()
 
@@ -19,12 +20,12 @@ def log_in(wait):
     element.send_keys(os.getenv("FIDELITY_PASSWORD"))
     element = wait.until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
     element.click()
-    time.sleep(8)
+    time.sleep(10)
 
     # Click positions
     element = wait.until(EC.visibility_of_element_located((By.ID, "portsum-tab-positions")))
     element.click()
-    time.sleep(8)
+    time.sleep(10)
 
     # Wait for refresh
     wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//button[@class = "posweb-cell-symbol-name pvd-btn btn-anchor"]')))
@@ -59,6 +60,7 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
     and submit -> after looped through accounts and stocks, logout
 
     TO-DO:
+    - Check all positions and remove tickers from list/skip step after checking
     - Currently using last price but could use ask price or alert if large spread/dif between last and
         ask and give choice
     '''
@@ -67,7 +69,7 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
     def exclusions():
         # exclude 401K accounts
         txt = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "portfolio-card-container__banner"]'))).text
-        if "401K" in txt:
+        if any(item in txt for item in ["401K", "CHET"]):
             return True
         else:
             return False
@@ -123,17 +125,17 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
         log_in(wait)
 
     # Get all accounts
-    accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
+    accounts = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="acct-selector__acct-content"]')))
 
     # Loop through accounts
     for i in range(len(accounts)):
         account = accounts[i]
 
         if EC.staleness_of(account):
-            accounts = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "acct-selector__acct-title"]')))
+            accounts = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="acct-selector__acct-content"]')))
             account = accounts[i]
 
-        account.click()
+        ActionChains(driver).move_to_element(account).click(account).perform()
 
         if not exclusions():
             positions = get_positions(wait)
@@ -146,6 +148,8 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
                 else:
                     if s in positions:
                         fid_modal(side)
+
+                time.sleep(1)
         else:
             wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//button[@class = "posweb-cell-symbol-name pvd-btn btn-anchor"]')))
 

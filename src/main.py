@@ -14,7 +14,7 @@ TO-DO:
 - Add quantity and other defaults into env
 - Add more brokers
 - Vet by exchange/broker pair
-- appium for mobile apps
+- appium for mobile apps  6
 - Exclusions for brokerage, accounts, etc.
 - Track and sell
 '''
@@ -29,7 +29,7 @@ sell = []
 
 # Take inputs
 
-print("Enter stock ticker and side of order i.e. 'vti,buy'\nTo end input, enter 'done': ")
+print("\nEnter stock ticker and side of order i.e. 'vti,buy'\nTo end input, enter 'done': ")
 val = str(input())
 while 1 == 1:
     if val.strip().lower() == 'done':
@@ -37,10 +37,19 @@ while 1 == 1:
         break
 
     val = val.split(',')
+    while 1==1:
+        if len(val) != 2:
+            val = str(input("Please input a valid order.\n Try again:\n"))
+        else:
+            break
+
     if val[1].strip().lower() == 'buy':
         buy.append(val[0].strip().upper())
-    if val[1].strip().lower() == 'sell':
+    elif val[1].strip().lower() == 'sell':
         sell.append(val[0].strip().upper())
+    else:
+        val = str(input("Please input a valid order.\n Try again:\n"))
+        continue
 
     val = str(input("Enter another:\n"))
 
@@ -54,13 +63,16 @@ if len(buy) > 0 and len(sell) > 0:
 
     # API
     import robin_stocks.robinhood as r
-    totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP")).now()
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME"), os.getenv("ROBINHOOD_PASSWORD"), expiresIn=1800, store_session=False, mfa_code=totp)
+    import pyotp
 
-    robin_buy(buy, stay_open, r)
-    print("RH Buying Complete.")
-    robin_sell(sell, stay_open, r)
-    print("RH Selling Complete.")
+    for num_accounts in range(len(os.getenv('ROBINHOOD_USERNAME').split(","))):
+        totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP").split(",")[num_accounts]).now()
+        login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME").split(",")[num_accounts], os.getenv("ROBINHOOD_PASSWORD").split(",")[num_accounts], expiresIn=1800, store_session=False, mfa_code=totp)
+
+        robin_buy(buy, stay_open, r)
+        print("RH Buying Complete.")
+        robin_sell(sell, stay_open, r)
+        print("RH Selling Complete.")
 
     # Selenium
     driver = uc.Chrome()
@@ -89,7 +101,7 @@ elif len(buy) > 0:
 
     fid_buy_and_sell(buy, stay_open, driver, wait, side='Buy')
     print("Fid Buying Complete.")
-    first_buy_and_sell(buy, stay_open, driver, wait, buy="Buy")
+    first_buy_and_sell(buy, stay_open, driver, wait, side="Buy")
     print("First Buying Complete.")
 
     driver.quit()
