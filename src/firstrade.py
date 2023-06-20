@@ -44,24 +44,12 @@ def get_positions(wait, driver):
     element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
     '''
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
-    print(element)
     wait.until(EC.staleness_of(element))
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
-    #ActionChains(driver).move_to_element(element).click(element).perform()  # Stale, maybe try the div
     element.click()
-    # Try drive.get
-    '''
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
-    if EC.staleness_of(element):
-        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
-
-    #element.click()
-    print(element)
-    ActionChains(driver).move_to_element(element).click(element).perform() #Stale, maybe try the div
-    '''
 
     element = wait.until(EC.visibility_of_element_located((By.XPATH, '//table[@id="home_positions_table"]')))
-    element = element.find_elements((By.XPATH, '//td[@class="ta_left"]'))
+    element = element.find_elements(By.XPATH, '//td[@class="ta_left"]')
 
     if isinstance(element, list):
         positions = [el.text for el in element]
@@ -145,6 +133,7 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side):
         select.select_by_index(i)
 
         positions = get_positions(wait, driver)
+        print(positions)
 
     # Logout -------------------------------------------
     if (not stay_open) or (stay_open and side == 'Buy'):

@@ -107,14 +107,14 @@ elif len(buy) > 0:
     print("Driver Quit Complete.")
 else:
     # API
-    robin_sell(sell, stay_open)
+    #robin_sell(sell, stay_open)
     print("RH Selling Complete.")
 
     # Selenium
     driver = uc.Chrome()
     wait = WebDriverWait(driver, 10)
 
-    fid_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
+    #fid_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
     print("Fid Selling Complete.")
     first_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
     print("First Selling Complete.")
