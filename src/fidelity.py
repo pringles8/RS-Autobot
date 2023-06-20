@@ -1,6 +1,7 @@
 import time
 import os
 from dotenv import load_dotenv
+import math
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
@@ -53,6 +54,10 @@ def get_positions(wait):
 
     return positions
 
+def round_up(n, decimals=0):
+    multiplier = 10 ** decimals
+    return math.ceil(n * multiplier) / multiplier
+
 def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
     '''
     Fidelity - using selenium to "manually" submit tickets.
@@ -67,7 +72,7 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
 
     # Exclusions
     def exclusions():
-        # exclude 401K accounts
+        # exclude non-self-directed accounts
         txt = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "portfolio-card-container__banner"]'))).text
         if any(item in txt for item in ["401K", "CHET"]):
             return True
@@ -91,18 +96,23 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
         market_or_limit = 'Market' if side == 'Sell' else "Limit"
 
         # Press buy, shares, day, and limit
-        element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]')))
+        element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root pvd-segment--medium"]'))) #//label[@class = "pvd-segment__label"]
 
         for el in element:
             if el.text == side or el.text == "Shares" or el.text == market_or_limit or el.text == "Day" or el.text == "Cash":
-                el.click()
+                ActionChains(driver).move_to_element(el).click(el).perform()
+                #el.click()
 
         if side == "Buy":
             # Input last price
-            last_price = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket__last-price'))).text
+            #last_price = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket__last-price'))).text
+
+            # Input ask price
+            ask_price = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class="block-price-layout"]')))
+            ask_price = round_up(float(ask_price[1].text.split("x")[0].strip()), 2)
 
             element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-ordsel-limit-price-field')))
-            element.send_keys(last_price)
+            element.send_keys(ask_price)
 
         # Press preview and buy
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "eq-ticket__order-entry__actionbtn"]')))
@@ -112,7 +122,9 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
         element.click()
 
         # Wait to process/last modal screen
-        wait.until(EC.element_to_be_clickable((By.ID, 'Enter_order_button')))
+        wait.until(EC.element_to_be_clickable((By.ID, 'Enter_order_button'))) # Time out errors here
+        # Time out seems to be because button isn't clickable, because not all selections are made
+        # Can try adding explicit waits or sleeps in the loop above
 
         # Close Modal
         element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
@@ -153,7 +165,7 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
         else:
             wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//button[@class = "posweb-cell-symbol-name pvd-btn btn-anchor"]')))
 
-    print("Bought ", stocks, " in Fidelity")
+    print("Bought " if side == "Buy" else "Sold ", stocks, " in Fidelity")
 
     # Log out
     if (not stay_open) or (stay_open and side == 'Sell'):

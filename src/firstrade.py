@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import Select
 
 load_dotenv()
 
@@ -29,22 +31,42 @@ def log_out(wait):
     print('First Logout Complete.')
     return
 
-def get_positions(wait):
+def get_positions(wait, driver):
     # Click positions
+    positions = []
+    '''
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
     try:
-        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
-        element.click()
-
-        element = wait.until(EC.visibility_of_element_located((By.ID, 'pos_view0')))
-        element = element.find_elements((By.XPATH, '//td[@class="ta_left"]'))
-
-        if isinstance(element, list):
-            positions = [el.text for el in element]
-        else:
-            positions = [element.text]
+        wait.until(EC.staleness_of(element))
     except:
-        positions = []
-    print(positions)
+        print("Exception")
+        
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
+    '''
+    element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
+    print(element)
+    wait.until(EC.staleness_of(element))
+    element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
+    #ActionChains(driver).move_to_element(element).click(element).perform()  # Stale, maybe try the div
+    element.click()
+    # Try drive.get
+    '''
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
+    if EC.staleness_of(element):
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
+
+    #element.click()
+    print(element)
+    ActionChains(driver).move_to_element(element).click(element).perform() #Stale, maybe try the div
+    '''
+
+    element = wait.until(EC.visibility_of_element_located((By.XPATH, '//table[@id="home_positions_table"]')))
+    element = element.find_elements((By.XPATH, '//td[@class="ta_left"]'))
+
+    if isinstance(element, list):
+        positions = [el.text for el in element]
+    else:
+        positions = [element.text]
 
     return positions
 
@@ -115,28 +137,14 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side):
     element.click()
 
     # Get all accounts
-    element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class="change_acon"]')))
-    element[1].click()
-    element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//a[starts-with(@onclick,"javascript:accountChangeSubmit")]')))
+    select = Select(wait.until(EC.visibility_of_element_located((By.XPATH, '//select[@id="accountId"]'))))
+    options = select.options
 
     # Loop through accounts and buy
-    for el in element:
-        el.click()
+    for i in range(len(options)):
+        select.select_by_index(i)
 
-        positions = get_positions(wait)
-
-        # Loop through stocks
-        for s in stocks:
-            if side == "Buy":
-                if s not in positions:
-                    first_modal(side)
-            else:
-                if s in positions:
-                    first_modal(side)
-
-        driver.implicitly_wait(3)
-        element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class="change_acon"]')))
-        element[1].click()  # -----------------Can't click after first loop, added impicit wait to try, can try the action click next-----
+        positions = get_positions(wait, driver)
 
     # Logout -------------------------------------------
     if (not stay_open) or (stay_open and side == 'Buy'):

@@ -7,8 +7,8 @@ load_dotenv()
 def login(num_acct):
     import robin_stocks.robinhood as r
 
-    totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP").split(",")[num_acct]).now()
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME").split(",")[num_acct], os.getenv("ROBINHOOD_PASSWORD").split(",")[num_acct], expiresIn=1800, store_session=False, mfa_code=totp)
+    totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP").split(",")[num_acct].strip()).now()
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME").split(",")[num_acct].strip(), os.getenv("ROBINHOOD_PASSWORD").split(",")[num_acct].strip(), expiresIn=1800, store_session=False, mfa_code=totp)
 
     return r
 
@@ -53,7 +53,7 @@ def robin_buy(stocks, stay_open, r=None, acct=0):
         r.authentication.logout()
         if num_accts != acct + 1:
             acct += 1
-            robin_sell(stocks, stay_open, acct=acct)
+            robin_buy(stocks, stay_open, acct=acct)
         else:
             print("RH Logout Complete.")
 
