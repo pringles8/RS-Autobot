@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.keys import Keys
 
 load_dotenv()
 
@@ -34,22 +35,15 @@ def log_out(wait):
 def get_positions(wait, driver):
     # Click positions
     positions = []
-    '''
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
-    try:
-        wait.until(EC.staleness_of(element))
-    except:
-        print("Exception")
-        
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="btn-white"]')))
-    '''
+
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
     wait.until(EC.staleness_of(element))
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
-    element.click()
+    #ActionChains(driver).move_to_element(element).click(element).perform()
+    element.send_keys(Keys.ENTER)
 
     element = wait.until(EC.visibility_of_element_located((By.XPATH, '//table[@id="home_positions_table"]')))
-    element = element.find_elements(By.XPATH, '//td[@class="ta_left"]')
+    element = element.find_elements(By.XPATH, './/td[@class="ta_left"]')
 
     if isinstance(element, list):
         positions = [el.text for el in element]
@@ -133,7 +127,16 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side):
         select.select_by_index(i)
 
         positions = get_positions(wait, driver)
-        print(positions)
+
+        for s in stocks:
+            if side == "Buy":
+                if s not in positions:
+                    first_modal(side)
+            else:
+                if s in positions:
+                    first_modal(side)
+
+        print("Bought " if side == "Buy" else "Sold ", stocks, " in Firstrade")
 
     # Logout -------------------------------------------
     if (not stay_open) or (stay_open and side == 'Buy'):

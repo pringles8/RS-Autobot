@@ -101,7 +101,7 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
         for el in element:
             if el.text == side or el.text == "Shares" or el.text == market_or_limit or el.text == "Day" or el.text == "Cash":
                 ActionChains(driver).move_to_element(el).click(el).perform()
-                #el.click()
+                time.sleep(1)
 
         if side == "Buy":
             # Input last price

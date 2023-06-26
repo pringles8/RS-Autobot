@@ -114,7 +114,7 @@ else:
     driver = uc.Chrome()
     wait = WebDriverWait(driver, 10)
 
-    #fid_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
+    fid_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
     print("Fid Selling Complete.")
     first_buy_and_sell(sell, stay_open, driver, wait, side='Sell')
     print("First Selling Complete.")
