@@ -15,19 +15,21 @@ def open_website(driver, wait):
     element.click()
     return
 
-def log_in(wait):
+def log_in(wait, num_acct):
     # Login
     element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
-    element.send_keys(os.getenv("FIRSTRADE_USERNAME"))
+    element.send_keys(os.getenv("FIRSTRADE_USERNAME").split(",")[num_acct].strip())
     element = wait.until(EC.element_to_be_clickable((By.ID, 'password')))
-    element.send_keys(os.getenv("FIRSTRADE_PASSWORD"))
+    element.send_keys(os.getenv("FIRSTRADE_PASSWORD").split(",")[num_acct].strip())
     element = wait.until(EC.element_to_be_clickable((By.ID, 'loginButton')))
     element.click()
     return
 
 def log_out(wait):
     # Logout
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="logout btn btn-clear-blue"]')))
+    #element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="logout btn btn-clear-blue"]')))
+    element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Log Out')))
+
     element.click()
     print('First Logout Complete.')
     return
@@ -39,7 +41,6 @@ def get_positions(wait, driver):
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
     wait.until(EC.staleness_of(element))
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
-    #ActionChains(driver).move_to_element(element).click(element).perform()
     element.send_keys(Keys.ENTER)
 
     element = wait.until(EC.visibility_of_element_located((By.XPATH, '//table[@id="home_positions_table"]')))
@@ -52,7 +53,7 @@ def get_positions(wait, driver):
 
     return positions
 
-def first_buy_and_sell(stocks, stay_open, driver, wait, side):
+def first_buy_and_sell(stocks, stay_open, driver, wait, side, acct=0):
     '''
     Firstrade - using selenium to "manually" submit tickets.
     Process: login -> loop through accounts -> check if they can trade stocks -> open trade ticket
@@ -80,28 +81,30 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side):
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="quoteSymbol"]')))
         element.clear()
         element.send_keys(s)
-        time.sleep(3)
+        #time.sleep(3)
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="getQ"]')))
         element.click()
 
         # Send order
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="submitOrder"]')))
-        #element.click()
+        element.click()
 
         # Place another order
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="submitted_placeorder_bnt btn btn-action"]')))
         element.click()
 
         # Perhaps clear ticket hear?
+        time.sleep(1)
         return
 
     if (not stay_open) or (stay_open and side == 'Buy'):
+        num_accts = len(os.getenv("FIRSTRADE_USERNAME").split(","))
         open_website(driver, wait)
-        log_in(wait)
+        log_in(wait, acct)
 
     # Check for PIN //div[@class="subtitle"]
     if driver.current_url == "https://invest.firstrade.com/cgi-bin/enter_pin?destination_page=home":
-        for i in os.getenv('FIRSTRADE_PIN'):
+        for i in os.getenv('FIRSTRADE_PIN').split(",")[acct].strip():
             element = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@title={}]".format(i))))
             element.click()
 
@@ -138,7 +141,14 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side):
 
         print("Bought " if side == "Buy" else "Sold ", stocks, " in Firstrade")
 
-    # Logout -------------------------------------------
-    if (not stay_open) or (stay_open and side == 'Buy'):
+    # Logout
+    if (not stay_open) or (stay_open and side == 'Sell'):
         log_out(wait)
+
+        if num_accts != acct + 1:
+            acct += 1
+            first_buy_and_sell(stocks, stay_open, driver, wait, side, acct=0)
+        else:
+            print("Firstrade Logout Complete.")
+
     return

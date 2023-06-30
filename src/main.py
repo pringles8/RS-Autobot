@@ -107,7 +107,7 @@ elif len(buy) > 0:
     print("Driver Quit Complete.")
 else:
     # API
-    #robin_sell(sell, stay_open)
+    robin_sell(sell, stay_open)
     print("RH Selling Complete.")
 
     # Selenium

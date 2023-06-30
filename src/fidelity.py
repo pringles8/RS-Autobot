@@ -74,7 +74,7 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
     def exclusions():
         # exclude non-self-directed accounts
         txt = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class = "portfolio-card-container__banner"]'))).text
-        if any(item in txt for item in ["401K", "CHET"]):
+        if any(item in txt for item in ["401K", "CHET", "529"]):
             return True
         else:
             return False
