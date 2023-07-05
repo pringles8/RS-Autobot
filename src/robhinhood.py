@@ -12,7 +12,25 @@ def login(num_acct):
 
     return r
 
-def robin_buy(stocks, stay_open, r=None, acct=0):
+def robin_trade(buy=[], sell=[], acct=0):
+
+    r = login(acct)
+
+    if len(buy) > 0:
+        robin_buy(buy, r)
+        print("Robin buying complete for account " + str(acct))
+    if len(sell) > 0:
+        robin_sell(sell, r)
+        print("Robin selling complete for account " + str(acct))
+
+    r.authentication.logout()
+    print("Robin account " + str(acct) + " logout complete.")
+
+    num_accts = len(os.getenv("ROBINHOOD_USERNAME").split(","))
+    if acct + 1 != num_accts:
+        robin_trade(buy, sell, acct=(acct+1))
+
+def robin_buy(stocks,  r=None):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -20,10 +38,6 @@ def robin_buy(stocks, stay_open, r=None, acct=0):
     TO-DO:
     -
     '''
-
-    if not stay_open:
-        num_accts = len(os.getenv("ROBINHOOD_USERNAME").split(","))
-        r = login(acct)
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
@@ -49,15 +63,7 @@ def robin_buy(stocks, stay_open, r=None, acct=0):
         if stock in holdings:
             print('Bought ', stock, " in RH Brokerage")
 
-    if not stay_open:
-        r.authentication.logout()
-        if num_accts != acct + 1:
-            acct += 1
-            robin_buy(stocks, stay_open, acct=acct)
-        else:
-            print("RH Logout Complete.")
-
-def robin_sell(stocks, stay_open, r=None, acct=0):
+def robin_sell(stocks, r=None):
     '''
     Robinhood - using robin_stocks but there is an api.
     Process: login -> get holdings -> buy stock if not already held.
@@ -65,10 +71,6 @@ def robin_sell(stocks, stay_open, r=None, acct=0):
     TO-DO:
     -
     '''
-
-    if not stay_open:
-        num_accts = len(os.getenv("ROBINHOOD_USERNAME").split(","))
-        r = login(acct)
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
@@ -91,11 +93,3 @@ def robin_sell(stocks, stay_open, r=None, acct=0):
         holdings = holdings.keys()
         if stock in holdings:
             print('Sold ', stock, " in RH Brokerage")
-
-    r.authentication.logout()
-    if not stay_open:
-        if num_accts != acct + 1:
-            acct += 1
-            robin_sell(stocks, stay_open, acct=acct)
-        else:
-            print("RH Logout Complete.")

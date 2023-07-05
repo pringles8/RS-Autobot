@@ -34,7 +34,7 @@ def log_out(wait):
     print('First Logout Complete.')
     return
 
-def get_positions(wait, driver):
+def get_positions(wait):
     # Click positions
     positions = []
 
@@ -53,7 +53,7 @@ def get_positions(wait, driver):
 
     return positions
 
-def first_buy_and_sell(stocks, stay_open, driver, wait, side, acct=0):
+def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     '''
     Firstrade - using selenium to "manually" submit tickets.
     Process: login -> loop through accounts -> check if they can trade stocks -> open trade ticket
@@ -80,7 +80,7 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side, acct=0):
         # Enter ticker and limit prices
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="quoteSymbol"]')))
         element.clear()
-        element.send_keys(s)
+        element.send_keys(stock)
         #time.sleep(3)
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="getQ"]')))
         element.click()
@@ -97,10 +97,9 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side, acct=0):
         time.sleep(1)
         return
 
-    if (not stay_open) or (stay_open and side == 'Buy'):
-        num_accts = len(os.getenv("FIRSTRADE_USERNAME").split(","))
+    if acct == 0:
         open_website(driver, wait)
-        log_in(wait, acct)
+    log_in(wait, acct)
 
     # Check for PIN //div[@class="subtitle"]
     if driver.current_url == "https://invest.firstrade.com/cgi-bin/enter_pin?destination_page=home":
@@ -131,24 +130,26 @@ def first_buy_and_sell(stocks, stay_open, driver, wait, side, acct=0):
 
         positions = get_positions(wait, driver)
 
-        for s in stocks:
-            if side == "Buy":
-                if s not in positions:
-                    first_modal(side)
-            else:
-                if s in positions:
-                    first_modal(side)
-
-        print("Bought " if side == "Buy" else "Sold ", stocks, " in Firstrade")
+        if len(buy) > 0:
+            for stock in buy:
+                if stock not in positions:
+                    first_modal(side="Buy")
+                    print('Bought ', stock, " in First account " + str(options[i]))
+            print("First buying complete in account " + str(options[i]))
+        if len(sell) > 0:
+            for stock in sell:
+                if stock in positions:
+                    first_modal(side="Sell")
+                    print('Sold ', stock, " in First account " + str(options[i]))
+            print("First selling complete in account " + str(options[i]))
 
     # Logout
-    if (not stay_open) or (stay_open and side == 'Sell'):
-        log_out(wait)
+    log_out(wait)
+    print("Firstrade Logout Complete.")
 
-        if num_accts != acct + 1:
-            acct += 1
-            first_buy_and_sell(stocks, stay_open, driver, wait, side, acct=0)
-        else:
-            print("Firstrade Logout Complete.")
+    num_accts = len(os.getenv("FIRSTRADE_USERNAME").split(","))
+    if num_accts != acct + 1:
+        acct += 1
+        first_buy_and_sell(buy=buy, sell=sell, driver=driver, wait=wait, acct=acct)
 
     return

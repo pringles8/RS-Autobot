@@ -58,7 +58,7 @@ def round_up(n, decimals=0):
     multiplier = 10 ** decimals
     return math.ceil(n * multiplier) / multiplier
 
-def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
+def fid_buy_and_sell(driver, wait, buy=[], sell=[]):
     '''
     Fidelity - using selenium to "manually" submit tickets.
     Process: login -> loop through accounts -> check if they can trade stocks -> open trade ticket
@@ -87,7 +87,7 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
         # Enter symbol
         wait.until(EC.visibility_of_element_located((By.ID, 'eq-ticket-dest-symbol')))
         element = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
-        element.send_keys(s)
+        element.send_keys(stock)
 
         # Enter number of shares
         element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-shared-quantity')))
@@ -100,8 +100,8 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
 
         for el in element:
             if el.text == side or el.text == "Shares" or el.text == market_or_limit or el.text == "Day" or el.text == "Cash":
-                ActionChains(driver).move_to_element(el).click(el).perform()
                 time.sleep(1)
+                ActionChains(driver).move_to_element(el).click(el).perform()
 
         if side == "Buy":
             # Input last price
@@ -123,18 +123,15 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
 
         # Wait to process/last modal screen
         wait.until(EC.element_to_be_clickable((By.ID, 'Enter_order_button'))) # Time out errors here
-        # Time out seems to be because button isn't clickable, because not all selections are made
-        # Can try adding explicit waits or sleeps in the loop above
 
         # Close Modal
         element = wait.until(EC.element_to_be_clickable((By.XPATH,'//a[@class = "float-trade-container-close dialog-close"]')))
         element.click()
 
         return
-
-    if (not stay_open) or (stay_open and side == 'Buy'):
-        open_website(driver, wait)
-        log_in(wait)
+    # Open and login
+    open_website(driver, wait)
+    log_in(wait)
 
     # Get all accounts
     accounts = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//div[@class="acct-selector__acct-content"]')))
@@ -153,22 +150,23 @@ def fid_buy_and_sell(stocks, stay_open, driver, wait, side):
             positions = get_positions(wait)
 
             # Loop through stocks
-            for s in stocks:
-                if side == 'Buy':
-                    if s not in positions:
-                        fid_modal(side)
-                else:
-                    if s in positions:
-                        fid_modal(side)
-
-                time.sleep(1)
+            if len(buy) > 0:
+                for stock in buy:
+                    if stock not in positions:
+                        fid_modal(side="Buy")
+                        print('Bought ', stock, " in Fid account " + str(account.text))
+                    time.sleep(1)
+                print("Fid buying complete in account " + str(account.text))
+            if len(sell) > 0:
+                for stock in sell:
+                    if stock in positions:
+                        fid_modal(side="Sell")
+                        print('Sold ', stock, " in Fid account " + str(account.text))
+                    time.sleep(1)
+                print("Fid selling complete in account " + str(account.text))
         else:
             wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//button[@class = "posweb-cell-symbol-name pvd-btn btn-anchor"]')))
 
-    print("Bought " if side == "Buy" else "Sold ", stocks, " in Fidelity")
-
-    # Log out
-    if (not stay_open) or (stay_open and side == 'Sell'):
-        log_out(wait)
+    log_out(wait)
 
     return
