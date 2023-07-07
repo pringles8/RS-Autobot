@@ -10,7 +10,7 @@ from firstrade import first_buy_and_sell
 # Main
 '''
 TO-DO:
-- After-hours capabillity
+- After-hours capability
 - Add quantity and other defaults into env
 - Add more brokers
 - Vet by exchange/broker pair
@@ -25,7 +25,8 @@ load_dotenv()
 buy = []
 sell = []
 
-print("\nEnter side of order and stock ticker(s). To end input, enter 'done'.\ni.e. 'buy, vti, qqq' or 'sell, voo, q, done' or 'done'." )
+print("\nEnter side of order and stock ticker(s). To end input, enter 'done'.\ni.e. 'buy, vti, qqq' or 'sell, voo, q, "
+      "done' or 'done'.")
 val = str(input())
 while 1 == 1:
     if val.strip().lower() == 'done':
@@ -41,7 +42,7 @@ while 1 == 1:
 
     if val[0].lower() == 'buy':
         buy = buy + list(map(str.upper, val[1:]))
-        buy = [*set(buy)] # Dedup
+        buy = [*set(buy)]  # Dedup
     elif val[0].lower() == 'sell':
         sell = sell + list(map(str.upper, val[1:]))
         sell = [*set(sell)]
@@ -58,7 +59,6 @@ while 1 == 1:
 ##stocks = [i[1] for i in RS]
 
 # Trade in brokers
-
 ## API First
 robin_trade(buy=buy, sell=sell)
 print("Robinhood orders complete.")

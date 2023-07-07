@@ -1,18 +1,31 @@
 import os
+import time
+
 from dotenv import load_dotenv
 import pyotp
 
 load_dotenv()
 
+
 def login(num_acct):
     import robin_stocks.robinhood as r
 
     totp = pyotp.TOTP(os.getenv("ROBINHOOD_TOTP").split(",")[num_acct].strip()).now()
-    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME").split(",")[num_acct].strip(), os.getenv("ROBINHOOD_PASSWORD").split(",")[num_acct].strip(), expiresIn=1800, store_session=False, mfa_code=totp)
+    login = r.authentication.login(os.getenv("ROBINHOOD_USERNAME").split(",")[num_acct].strip(), \
+                                   os.getenv("ROBINHOOD_PASSWORD").split(",")[num_acct].strip(), expiresIn=1800, \
+                                   store_session=False, mfa_code=totp)
 
     return r
 
+
 def robin_trade(buy=[], sell=[], acct=0):
+    '''
+    Robinhood - using robin_stocks but there is an api.
+    Process: login -> get holdings -> buy stock if not already held.
+
+    TO-DO:
+    -
+    '''
 
     r = login(acct)
 
@@ -28,17 +41,10 @@ def robin_trade(buy=[], sell=[], acct=0):
 
     num_accts = len(os.getenv("ROBINHOOD_USERNAME").split(","))
     if acct + 1 != num_accts:
-        robin_trade(buy, sell, acct=(acct+1))
+        robin_trade(buy, sell, acct=(acct + 1))
 
-def robin_buy(stocks,  r=None):
-    '''
-    Robinhood - using robin_stocks but there is an api.
-    Process: login -> get holdings -> buy stock if not already held.
 
-    TO-DO:
-    -
-    '''
-
+def robin_buy(stocks, r=None):
     holdings = r.build_holdings()
     holdings = holdings.keys()
 
@@ -55,22 +61,19 @@ def robin_buy(stocks,  r=None):
     for stock in stocks:
         cash = float(r.profiles.load_account_profile()['buying_power'])
 
-        if stock not in holdings and float(r.stocks.get_latest_price(stock, priceType = 'ask_price')[0] or cash) < cash:
-            r.orders.order(stock, 1, 'buy', limitPrice = float(r.stocks.get_latest_price(stock, priceType = 'ask_price')[0]), timeInForce = 'gfd')
+        if stock not in holdings and float(r.stocks.get_latest_price(stock, priceType='ask_price')[0] or cash) < cash:
+            r.orders.order(stock, 1, 'buy',
+                           limitPrice=float(r.stocks.get_latest_price(stock, priceType='ask_price')[0]),
+                           timeInForce='gfd')
 
+        time.sleep(1)
         holdings = r.build_holdings()
         holdings = holdings.keys()
         if stock in holdings:
             print('Bought ', stock, " in RH Brokerage")
 
-def robin_sell(stocks, r=None):
-    '''
-    Robinhood - using robin_stocks but there is an api.
-    Process: login -> get holdings -> buy stock if not already held.
 
-    TO-DO:
-    -
-    '''
+def robin_sell(stocks, r=None):
 
     holdings = r.build_holdings()
     holdings = holdings.keys()
@@ -84,12 +87,14 @@ def robin_sell(stocks, r=None):
     ': '12.1859', 'equity': '13.37', 'percent_change': '-39.44', 'equity_change': '-8.706551', 'type': 'stock', 'name': 'Palantir
     Technologies', 'id': 'f90de184-4f73-4aad-9a5f-407858013eb1', 'pe_ratio': None, 'percentage': '3.30'},
     '''
-
     for stock in stocks:
         if stock in holdings:
-            r.orders.order(stock, 1, 'sell')
+            r.orders.order(stock, 1, 'sell',
+                           limitPrice=float(r.stocks.get_latest_price(stock, priceType='bid_price')[0]),
+                           timeInForce='gfd')
 
+        time.sleep(1)
         holdings = r.build_holdings()
         holdings = holdings.keys()
-        if stock in holdings:
+        if stock not in holdings:
             print('Sold ', stock, " in RH Brokerage")

@@ -9,11 +9,13 @@ from selenium.webdriver.common.keys import Keys
 
 load_dotenv()
 
+
 def open_website(driver, wait):
     driver.get("https://www.firstrade.com/content/en-us/welcome")
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Log In")))
     element.click()
     return
+
 
 def log_in(wait, num_acct):
     # Login
@@ -25,20 +27,25 @@ def log_in(wait, num_acct):
     element.click()
     return
 
+
 def log_out(wait):
     # Logout
-    #element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="logout btn btn-clear-blue"]')))
-    element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Log Out')))
+    # element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="logout btn btn-clear-blue"]')))
+    try:
+        element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Log Out')))
+    except:
+        element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Log Out')))
 
     element.click()
     print('First Logout Complete.')
     return
 
+
 def get_positions(wait):
     # Click positions
     positions = []
 
-    element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
+    element = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'Positions')))
     wait.until(EC.staleness_of(element))
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
     element.send_keys(Keys.ENTER)
@@ -52,6 +59,7 @@ def get_positions(wait):
         positions = [element.text]
 
     return positions
+
 
 def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     '''
@@ -72,6 +80,7 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
         buy_sell_xpath = "transactionType_Buy" if side == "Buy" else "transactionType_Sell"
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="{}"]'.format(buy_sell_xpath))))
         element.click()
+        time.sleep(0.75)
 
         # Enter quantity
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="quantity"]')))
@@ -81,24 +90,24 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="quoteSymbol"]')))
         element.clear()
         element.send_keys(stock)
-        #time.sleep(3)
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="getQ"]')))
         element.click()
+        time.sleep(0.75)
 
         # Send order
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="submitOrder"]')))
         element.click()
 
         # Place another order
-        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="submitted_placeorder_bnt btn btn-action"]')))
+        element = wait.until(
+            EC.element_to_be_clickable((By.XPATH, '//a[@class="submitted_placeorder_bnt btn btn-action"]')))
         element.click()
 
         # Perhaps clear ticket hear?
         time.sleep(1)
         return
 
-    if acct == 0:
-        open_website(driver, wait)
+    open_website(driver, wait)
     log_in(wait, acct)
 
     # Check for PIN //div[@class="subtitle"]
@@ -128,24 +137,24 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     for i in range(len(options)):
         select.select_by_index(i)
 
-        positions = get_positions(wait, driver)
+        positions = get_positions(wait)
 
         if len(buy) > 0:
             for stock in buy:
                 if stock not in positions:
                     first_modal(side="Buy")
-                    print('Bought ', stock, " in First account " + str(options[i]))
-            print("First buying complete in account " + str(options[i]))
+                    print('Bought ', stock, " in First account " + str(options[i].text))
+            print("First buying complete in account " + str(options[i].text))
         if len(sell) > 0:
             for stock in sell:
                 if stock in positions:
                     first_modal(side="Sell")
-                    print('Sold ', stock, " in First account " + str(options[i]))
-            print("First selling complete in account " + str(options[i]))
+                    print('Sold ', stock, " in First account " + str(options[i].text))
+            print("First selling complete in account " + str(options[i].text))
 
     # Logout
+    time.sleep(1)
     log_out(wait)
-    print("Firstrade Logout Complete.")
 
     num_accts = len(os.getenv("FIRSTRADE_USERNAME").split(","))
     if num_accts != acct + 1:
