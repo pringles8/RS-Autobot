@@ -31,13 +31,13 @@ def robin_trade(buy=[], sell=[], acct=0):
 
     if len(buy) > 0:
         robin_buy(buy, r)
-        print("Robin buying complete for account " + str(acct))
+        print("Robin buying complete for user " + str(acct))
     if len(sell) > 0:
         robin_sell(sell, r)
-        print("Robin selling complete for account " + str(acct))
+        print("Robin selling complete for user " + str(acct))
 
     r.authentication.logout()
-    print("Robin account " + str(acct) + " logout complete.")
+    print("Robin user " + str(acct) + " logout complete.")
 
     num_accts = len(os.getenv("ROBINHOOD_USERNAME").split(","))
     if acct + 1 != num_accts:

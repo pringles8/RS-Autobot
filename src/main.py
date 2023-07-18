@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from fidelity import fid_buy_and_sell
 from robhinhood import robin_trade
 from firstrade import first_buy_and_sell
+from tastytrade import TastyTrade
 
 # Main
 '''
@@ -62,6 +63,9 @@ while 1 == 1:
 ## API First
 robin_trade(buy=buy, sell=sell)
 print("Robinhood orders complete.")
+
+TastyTrade(buy=buy, sell=sell)
+print("Tasty orders complete.")
 
 ## Browser/Selenium Crawling
 driver = uc.Chrome()

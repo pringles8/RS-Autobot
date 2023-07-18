@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.action_chains import ActionChains
+# from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.keys import Keys
 
@@ -143,14 +143,14 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
             for stock in buy:
                 if stock not in positions:
                     first_modal(side="Buy")
-                    print('Bought ', stock, " in First account " + str(options[i].text))
-            print("First buying complete in account " + str(options[i].text))
+                    print('Bought ', stock, " in First account " + str(options[i].text)[-4:])
+            print("First buying complete in account " + str(options[i].text)[-4:])
         if len(sell) > 0:
             for stock in sell:
                 if stock in positions:
                     first_modal(side="Sell")
-                    print('Sold ', stock, " in First account " + str(options[i].text))
-            print("First selling complete in account " + str(options[i].text))
+                    print('Sold ', stock, " in First account " + str(options[i].text)[-4:])
+            print("First selling complete in account " + str(options[i].text)[-4:])
 
     # Logout
     time.sleep(1)
