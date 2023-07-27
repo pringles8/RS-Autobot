@@ -173,16 +173,16 @@ def fid_buy_and_sell(driver, wait, buy=[], sell=[]):
                 for stock in buy:
                     if stock not in positions:
                         fid_modal(side="Buy")
-                        print('Bought ', stock, " in Fid account " + account_text)
+                        print('Bought ', stock, " in Fid account " + account_text.split()[0][-4:])
                     time.sleep(1)
-                print("Fid buying complete in account " + account_text)
+                print("Fid buying complete in account " + account_text.split()[0][-4:])
             if len(sell) > 0:
                 for stock in sell:
                     if stock in positions:
                         fid_modal(side="Sell")
-                        print('Sold ', stock, " in Fid account " + account_text)
+                        print('Sold ', stock, " in Fid account " + account_text.split()[0][-4:])
                     time.sleep(1)
-                print("Fid selling complete in account " + account_text)
+                print("Fid selling complete in account " + account_text.split()[0][-4:])
         else:
             wait.until(EC.visibility_of_all_elements_located(
                 (By.XPATH, '//button[@class = "posweb-cell-symbol-name pvd-btn btn-anchor"]')))

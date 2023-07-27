@@ -45,18 +45,24 @@ def get_positions(wait):
     # Click positions
     positions = []
 
-    element = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'Positions')))
-    wait.until(EC.staleness_of(element))
+    time.sleep(1)
+    #element = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'Positions')))
+    #wait.until(EC.staleness_of(element))
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
     element.send_keys(Keys.ENTER)
 
-    element = wait.until(EC.visibility_of_element_located((By.XPATH, '//table[@id="home_positions_table"]')))
-    element = element.find_elements(By.XPATH, './/td[@class="ta_left"]')
+    element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class="content dashboard-block-content"]')))
+    element = element[1]
 
-    if isinstance(element, list):
-        positions = [el.text for el in element]
-    else:
-        positions = [element.text]
+
+    if element.text != "You do not have any positions.":
+        element = wait.until(EC.visibility_of_element_located((By.XPATH, '//table[@id="home_positions_table"]'))) # time out - positions button not hit
+        element = element.find_elements(By.XPATH, './/td[@class="ta_left"]')
+
+        if isinstance(element, list):
+            positions = [el.text for el in element]
+        else:
+            positions = [element.text]
 
     return positions
 
@@ -124,6 +130,9 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/cgi-bin/home"]')))
     element.click()
     wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@class="title_list dashboard-column-title"]')))
+
+    # Scroll Down
+    driver.execute_script("window.scrollTo(0,200)")
 
     # Open Trade Modal
     element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="javascript:ChangeOrderbar();"]')))

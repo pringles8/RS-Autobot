@@ -62,10 +62,10 @@ while 1 == 1:
 # Trade in brokers
 ## API First
 robin_trade(buy=buy, sell=sell)
-print("Robinhood orders complete.")
+print("Robinhood orders complete. ------------------------------------")
 
 TastyTrade(buy=buy, sell=sell)
-print("Tasty orders complete.")
+print("Tasty orders complete. ------------------------------------")
 
 ## Browser/Selenium Crawling
 driver = uc.Chrome()
@@ -73,10 +73,10 @@ wait = WebDriverWait(driver, 10)
 
 ### Fidelity
 fid_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
-print("Fidelity orders complete.")
+print("Fidelity orders complete. ------------------------------------")
 ### Firstrade
 first_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
-print("Firstrade orders complete.")
+print("Firstrade orders complete. ------------------------------------")
 
 driver.quit()
 print("Driver Quit Complete.")
