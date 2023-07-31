@@ -45,11 +45,12 @@ def get_positions(wait):
     # Click positions
     positions = []
 
-    time.sleep(1)
-    #element = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'Positions')))
-    #wait.until(EC.staleness_of(element))
+    #time.sleep(1)
+    element = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'Positions')))
+    wait.until(EC.staleness_of(element))
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
     element.send_keys(Keys.ENTER)
+    time.sleep(1)
 
     element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class="content dashboard-block-content"]')))
     element = element[1]

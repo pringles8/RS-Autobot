@@ -7,6 +7,7 @@ from fidelity import fid_buy_and_sell
 from robhinhood import robin_trade
 from firstrade import first_buy_and_sell
 from tastytrade import TastyTrade
+from tradier import tradierTrade
 
 # Main
 '''
@@ -67,6 +68,9 @@ print("Robinhood orders complete. ------------------------------------")
 TastyTrade(buy=buy, sell=sell)
 print("Tasty orders complete. ------------------------------------")
 
+tradierTrade(buy=buy, sell=sell)
+print("Tradier orders complete. ------------------------------------")
+
 ## Browser/Selenium Crawling
 driver = uc.Chrome()
 wait = WebDriverWait(driver, 10)
@@ -74,6 +78,7 @@ wait = WebDriverWait(driver, 10)
 ### Fidelity
 fid_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
 print("Fidelity orders complete. ------------------------------------")
+
 ### Firstrade
 first_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
 print("Firstrade orders complete. ------------------------------------")

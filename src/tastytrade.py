@@ -52,12 +52,12 @@ def order(stock, acct_num, st, side):
     response = requests.post(url=url, headers=headers, data=json.dumps(body))
 
     if response.status_code == 201:
-        buysell = "Bought " if side == "Buy" else "Sold"
+        buysell = "Bought " if side == "Buy" else "Sold "
         print(buysell + stock + " in Tasty account " + acct_num[-4:])
+    else:
+        response = response.json()
+        print(response)
 
-    response = response.json()
-    #print(response)
-    #order_data = response["data"]
 
 def TastyTrade(buy, sell, acct=0):
     # Get accounts
