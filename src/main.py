@@ -8,6 +8,7 @@ from robhinhood import robin_trade
 from firstrade import first_buy_and_sell
 from tastytrade import TastyTrade
 from tradier import tradierTrade
+from Schwab import schwab_buy_and_sell
 
 # Main
 '''
@@ -62,12 +63,15 @@ while 1 == 1:
 
 # Trade in brokers
 ## API First
+### RobinHood
 robin_trade(buy=buy, sell=sell)
 print("Robinhood orders complete. ------------------------------------")
 
+### TastyTrade
 TastyTrade(buy=buy, sell=sell)
 print("Tasty orders complete. ------------------------------------")
 
+### Tradier
 tradierTrade(buy=buy, sell=sell)
 print("Tradier orders complete. ------------------------------------")
 
@@ -83,5 +87,10 @@ print("Fidelity orders complete. ------------------------------------")
 first_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
 print("Firstrade orders complete. ------------------------------------")
 
+### Schwab
+#schwab_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
+print("Schwab orders complete. ------------------------------------")
+
+driver.close()
 driver.quit()
 print("Driver Quit Complete.")

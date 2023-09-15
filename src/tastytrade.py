@@ -103,7 +103,7 @@ def TastyTrade(buy, sell, acct=0):
             print("Tasty selling complete for account " + str(acct_num)[-4:])
 
     logout(st)
-    print("Tasty totally complete for acount " + str(acct_num)[-4:])
+    print("Tasty totally complete for account " + str(acct_num)[-4:])
 
     num_accts = len(os.getenv("TASTYTRADE_USERNAME").split(","))
     if acct + 1 != num_accts:

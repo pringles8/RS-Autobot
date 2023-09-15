@@ -66,11 +66,11 @@ def robin_buy(stocks, r=None):
                            limitPrice=float(r.stocks.get_latest_price(stock, priceType='ask_price')[0]),
                            timeInForce='gfd')
 
-        time.sleep(1)
-        holdings = r.build_holdings()
-        holdings = holdings.keys()
-        if stock in holdings:
-            print('Bought ', stock, " in RH Brokerage")
+            time.sleep(1)
+            holdings = r.build_holdings()
+            holdings = holdings.keys()
+            if stock in holdings:
+                print('Bought ', stock, " in RH Brokerage")
 
 
 def robin_sell(stocks, r=None):
@@ -93,8 +93,8 @@ def robin_sell(stocks, r=None):
                            limitPrice=float(r.stocks.get_latest_price(stock, priceType='bid_price')[0]),
                            timeInForce='gfd')
 
-        time.sleep(1)
-        holdings = r.build_holdings()
-        holdings = holdings.keys()
-        if stock not in holdings:
-            print('Sold ', stock, " in RH Brokerage")
+            time.sleep(1)
+            holdings = r.build_holdings()
+            holdings = holdings.keys()
+            if stock not in holdings:
+                print('Sold ', stock, " in RH Brokerage")
