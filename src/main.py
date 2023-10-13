@@ -14,7 +14,7 @@ from Schwab import schwab_buy_and_sell
 '''
 TO-DO:
 - After-hours capability
-- Add quantity and other defaults into env
+- Add quantity and other defaults into .env
 - Add more brokers
 - Vet by exchange/broker pair
 - appium for mobile apps  6
@@ -76,7 +76,10 @@ tradierTrade(buy=buy, sell=sell)
 print("Tradier orders complete. ------------------------------------")
 
 ## Browser/Selenium Crawling
-driver = uc.Chrome()
+options = uc.ChromeOptions()
+profile = os.getenv("PROFILE")
+options.add_argument(f"user-data-dir={profile}")
+driver = uc.Chrome(options=options,use_subprocess=True)
 wait = WebDriverWait(driver, 10)
 
 ### Fidelity
@@ -88,7 +91,7 @@ first_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
 print("Firstrade orders complete. ------------------------------------")
 
 ### Schwab
-#schwab_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
+schwab_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
 print("Schwab orders complete. ------------------------------------")
 
 driver.close()

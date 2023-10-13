@@ -17,11 +17,11 @@ def open_website(driver, wait):
 
 def log_in(wait):
     # Login
-    element = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "fs-mask-username")))
+    element = wait.until(EC.element_to_be_clickable((By.ID, "dom-username-input")))
     element.send_keys(os.getenv("FIDELITY_USERNAME"))
-    element = wait.until(EC.element_to_be_clickable((By.ID, 'password')))
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'dom-pswd-input')))
     element.send_keys(os.getenv("FIDELITY_PASSWORD"))
-    element = wait.until(EC.element_to_be_clickable((By.ID, 'fs-login-button')))
+    element = wait.until(EC.element_to_be_clickable((By.ID, 'dom-login-button')))
     element.click()
     time.sleep(10)
 
@@ -104,7 +104,8 @@ def fid_buy_and_sell(driver, wait, buy=[], sell=[]):
 
         market_or_limit = 'Market' if side == 'Sell' else "Limit"
 
-        # Press buy, shares, day, and limit
+        # Press buy, shares, day, and limit - tradetype-cash
+        time.sleep(3)
         element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class = "pvd3-segment-root '
                                                                               'pvd-segment--medium"]')))  # //label[
         # @class = "pvd-segment__label"]

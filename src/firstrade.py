@@ -12,6 +12,7 @@ load_dotenv()
 
 def open_website(driver, wait):
     driver.get("https://www.firstrade.com/content/en-us/welcome")
+    time.sleep(3)
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, "Log In")))
     element.click()
     return
@@ -19,10 +20,13 @@ def open_website(driver, wait):
 
 def log_in(wait, num_acct):
     # Login
+    time.sleep(3)
     element = wait.until(EC.element_to_be_clickable((By.ID, "username")))
     element.send_keys(os.getenv("FIRSTRADE_USERNAME").split(",")[num_acct].strip())
+    time.sleep(3)
     element = wait.until(EC.element_to_be_clickable((By.ID, 'password')))
     element.send_keys(os.getenv("FIRSTRADE_PASSWORD").split(",")[num_acct].strip())
+    time.sleep(3)
     element = wait.until(EC.element_to_be_clickable((By.ID, 'loginButton')))
     element.click()
     return
@@ -41,16 +45,20 @@ def log_out(wait):
     return
 
 
-def get_positions(wait):
+def get_positions(wait, driver):
     # Click positions
     positions = []
 
-    #time.sleep(1)
+    time.sleep(3)
     element = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'Positions')))
-    wait.until(EC.staleness_of(element))
+    try:
+        wait.until(EC.staleness_of(element))
+    except:
+        pass
+
     element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Positions')))
     element.send_keys(Keys.ENTER)
-    time.sleep(1)
+    time.sleep(5)
 
     element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class="content dashboard-block-content"]')))
     element = element[1]
@@ -104,10 +112,17 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
         # Send order
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="submitOrder"]')))
         element.click()
+        time.sleep(1)
+
+        # Order error check - div: id = orderbarerror
+        err = wait.until(EC.presence_of_element_located((By.XPATH, '//div[@id="orderbarerror"]')))
+
+        if err.text != "":
+            print(err.text)
+            return
 
         # Place another order
-        element = wait.until(
-            EC.element_to_be_clickable((By.XPATH, '//a[@class="submitted_placeorder_bnt btn btn-action"]')))
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="submitted_placeorder_bnt btn btn-action"]')))
         element.click()
 
         # Perhaps clear ticket hear?
@@ -118,6 +133,7 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     log_in(wait, acct)
 
     # Check for PIN //div[@class="subtitle"]
+    time.sleep(3)
     if driver.current_url == "https://invest.firstrade.com/cgi-bin/enter_pin?destination_page=home":
         for i in os.getenv('FIRSTRADE_PIN').split(",")[acct].strip():
             element = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@title={}]".format(i))))
@@ -128,26 +144,43 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
         wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="logout btn btn-clear-blue"]')))
 
     # Make sure we are on the home page
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/cgi-bin/home"]')))
-    element.click()
-    wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@class="title_list dashboard-column-title"]')))
+    #time.sleep(3)
+    #element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/cgi-bin/home"]')))
+    #element.click()
+    #wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@class="title_list dashboard-column-title"]')))
 
     # Scroll Down
+    time.sleep(5)
     driver.execute_script("window.scrollTo(0,200)")
 
-    # Open Trade Modal
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="javascript:ChangeOrderbar();"]')))
-    element.click()
+    # Buggy
+    def bug_refresh(i):
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="javascript:ChangeOrderbar();"]')))
+        element.click()  # Open Modal
+        select = Select(wait.until(EC.visibility_of_element_located((By.XPATH, '//select[@id="accountId"]'))))
+        select.select_by_index(i) # Select account
+        time.sleep(3)
+        element = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, 'Positions'))) # Click Positions
+        element.send_keys(Keys.ENTER)
+        time.sleep(3)
+        driver.refresh() # Refresh
+        time.sleep(3)
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="javascript:ChangeOrderbar();"]')))
+        element.click() # Open Modal
+        time.sleep(3)
+        select = Select(wait.until(EC.visibility_of_element_located((By.XPATH, '//select[@id="accountId"]'))))
+        options = select.options # Get all accounts
+        return select, options
 
-    # Get all accounts
-    select = Select(wait.until(EC.visibility_of_element_located((By.XPATH, '//select[@id="accountId"]'))))
-    options = select.options
+    select, options = bug_refresh(0)
 
     # Loop through accounts and buy
+    time.sleep(3)
     for i in range(len(options)):
+        select, options = bug_refresh(i)
         select.select_by_index(i)
-
-        positions = get_positions(wait)
+        time.sleep(3)
+        positions = get_positions(wait, driver)
 
         if len(buy) > 0:
             for stock in buy:
