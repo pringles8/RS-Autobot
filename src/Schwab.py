@@ -57,6 +57,7 @@ def schwab_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
         element.send_keys(s)
         time.sleep(2)
         element.send_keys(Keys.TAB)
+        time.sleep(2)
 
         if side == "Buy":
             # Check if owned
@@ -77,11 +78,9 @@ def schwab_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
             element.click()
 
             # Get ask price and input limit price
-            lim_price = wait.until(EC.element_to_be_clickable((By.ID, 'mcaio-asklink')))
-            lim_price = lim_price.text
+            ask_price = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[contains(@class,"askLink ")]')))
+            ask_price.click()
 
-            element = wait.until(EC.element_to_be_clickable((By.ID, 'limitprice-stepper-input')))
-            element.send_keys(lim_price)
         else:
             # Press sell all
             try:
@@ -91,6 +90,9 @@ def schwab_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
 
             if sell_all is not None:
                 sell_all.click()
+
+                lim_price = wait.until(EC.element_to_be_clickable((By.ID, 'mcaio-bidlink')))
+                lim_price.click()
 
         # Press review button
         element = wait.until(EC.element_to_be_clickable(
@@ -116,12 +118,13 @@ def schwab_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     driver.switch_to.default_content()
 
     # Go to trade tab and ticket
-    element = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//a[@href="/app/trade/tom"]')))
-    element[1].click()
+    time.sleep(1)
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="footer-aio"]')))
+    element.click()
     time.sleep(3)
 
     # Loop through accounts
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="mcAccountSelector"]')))
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="basic-example-small"]')))
     element.click()
     time.sleep(3)
 
@@ -140,9 +143,9 @@ def schwab_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
             for s in sell:
                 schwab_ticket("Sell")
 
-        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="mcAccountSelector"]')))
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="basic-example-small"]')))
         element.click()
-        time.sleep(3)
+        time.sleep(2)
 
         element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//li[@class="sdps-account-selector__list-item"]')))
 

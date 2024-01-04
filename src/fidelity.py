@@ -5,6 +5,7 @@ import math
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 
 load_dotenv()
 
@@ -97,9 +98,13 @@ def fid_buy_and_sell(driver, wait, buy=[], sell=[]):
         wait.until(EC.visibility_of_element_located((By.ID, 'eq-ticket-dest-symbol')))
         element = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket-dest-symbol')))
         element.send_keys(stock)
+        element.send_keys(Keys.TAB)
 
         # Enter number of shares
-        element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-shared-quantity')))
+        time.sleep(3)
+        wait.until(EC.visibility_of_element_located((By.XPATH, '//div[@class="block-price-layout"]')))
+        element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="eqt-shared-quantity"]')))
+        element.click()
         element.send_keys(1)
 
         market_or_limit = 'Market' if side == 'Sell' else "Limit"
@@ -117,7 +122,7 @@ def fid_buy_and_sell(driver, wait, buy=[], sell=[]):
 
         if side == "Buy":
             # Input last price
-            # last_price = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket__last-price'))).text
+            last_price = wait.until(EC.element_to_be_clickable((By.ID, 'eq-ticket__last-price'))).text
 
             # Input ask price
             ask_price = wait.until(
@@ -125,7 +130,7 @@ def fid_buy_and_sell(driver, wait, buy=[], sell=[]):
             ask_price = round_up(float(ask_price[1].text.split("x")[0].strip()), 2)
 
             element = wait.until(EC.element_to_be_clickable((By.ID, 'eqt-ordsel-limit-price-field')))
-            element.send_keys(ask_price)
+            element.send_keys(last_price)
 
         # Press preview and buy
         element = wait.until(
@@ -164,7 +169,10 @@ def fid_buy_and_sell(driver, wait, buy=[], sell=[]):
             account = accounts[i]
 
         ActionChains(driver).move_to_element(account).click(account).perform()
-        account_text = account.text
+        try:
+            account_text = account.text
+        except:
+            account_text = ""
 
         if not exclusions():
             positions = get_positions(wait)

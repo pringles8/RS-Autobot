@@ -9,6 +9,7 @@ from firstrade import first_buy_and_sell
 from tastytrade import TastyTrade
 from tradier import tradierTrade
 from Schwab import schwab_buy_and_sell
+from MerrilEdge import merril_buy_and_sell
 
 # Main
 '''
@@ -19,7 +20,7 @@ TO-DO:
 - Vet by exchange/broker pair
 - appium for mobile apps  6
 - Exclusions for brokerage, accounts, etc.
-- Track and sell
+- Track
 '''
 
 load_dotenv()
@@ -67,10 +68,6 @@ while 1 == 1:
 robin_trade(buy=buy, sell=sell)
 print("Robinhood orders complete. ------------------------------------")
 
-### TastyTrade
-TastyTrade(buy=buy, sell=sell)
-print("Tasty orders complete. ------------------------------------")
-
 ### Tradier
 tradierTrade(buy=buy, sell=sell)
 print("Tradier orders complete. ------------------------------------")
@@ -80,11 +77,7 @@ options = uc.ChromeOptions()
 profile = os.getenv("PROFILE")
 options.add_argument(f"user-data-dir={profile}")
 driver = uc.Chrome(options=options,use_subprocess=True)
-wait = WebDriverWait(driver, 10)
-
-### Fidelity
-fid_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
-print("Fidelity orders complete. ------------------------------------")
+wait = WebDriverWait(driver, 8)
 
 ### Firstrade
 first_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
@@ -94,6 +87,19 @@ print("Firstrade orders complete. ------------------------------------")
 schwab_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
 print("Schwab orders complete. ------------------------------------")
 
+### Fidelity
+fid_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
+print("Fidelity orders complete. ------------------------------------")
+
 driver.close()
 driver.quit()
 print("Driver Quit Complete.")
+
+# -------------------------DEPRICATED-----------------------------------------------------------------------------
+### TastyTrade
+##TastyTrade(buy=buy, sell=sell)
+#print("Tasty orders complete. ------------------------------------")
+
+### Merril Edge
+#merril_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
+#print("Merril orders complete. ------------------------------------") # In testing
