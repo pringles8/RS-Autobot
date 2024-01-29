@@ -43,10 +43,16 @@ def chase_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     driver.switch_to.default_content()
 
     # Go to Trade Screen
-    driver.navigate.to("https://secure.chase.com/web/auth/dashboard#/dashboard/oi-trade/equity/entry")
+    #driver.navigate().to("https://secure.chase.com/web/auth/dashboard#/dashboard/oi-trade/equity/entry")
+    #time.sleep(5)
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//div[@class="navigation-bar-item"]')))
+    element.click()
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@class="navigation-bar-menu-item navigation-bar-menu-item--interactive"]')))
+    element.click()
 
     # Get accounts - class="list-item__container"
     element = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//div[@class="list-item__container"]')))
+    print(element)
 
     # Loop through buy and sell for each account
     if len(buy) > 0:

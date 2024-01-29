@@ -23,6 +23,9 @@ def log_in(wait, num_acct):
     element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="pass"]')))
     element.send_keys(os.getenv("MERRIL_PASSWORD").split(",")[num_acct].strip())
     time.sleep(3)
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="secure-signin-submit"]')))
+    element.click()
+    time.sleep(3)
     return
 
 def get_positions(wait):
@@ -89,12 +92,15 @@ def merril_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     open_website(driver)
     log_in(wait, acct)
 
-    # Click "Trade" Tab - //a[@clickurlattribute="/Equities/OrderEntry.aspx"]
-    #element = wait.until(EC.element_to_be_clickable((By.LINK_TEXT, 'Trade')))
-    #element.click()
+    # Click "Trade" Tab
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@clickurlattribute="/Equities/OrderEntry.aspx"]')))
+    element.click()
+
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@href="/Equities/OrderEntry.aspx"]')))
+    element.click()
 
     # Click "Stocks & ETFs" - href="/Equities/OrderEntry.aspx" or link_text = Stocks & ETFs
-    driver.navigate.to("https://olui2.fs.ml.com/Equities/OrderEntry.aspx")
+    #driver.navigate.to("https://olui2.fs.ml.com/Equities/OrderEntry.aspx")
 
     # Get accounts //a[@aria-haspopup="listbox"]
     #select = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@aria-haspopup="listbox"]')))

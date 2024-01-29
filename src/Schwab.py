@@ -4,6 +4,7 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 load_dotenv()
 
@@ -118,10 +119,18 @@ def schwab_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
     driver.switch_to.default_content()
 
     # Go to trade tab and ticket
-    time.sleep(1)
-    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="footer-aio"]')))
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="meganav-button-trade"]')))
     element.click()
-    time.sleep(3)
+    element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="meganav-menu-aio"]')))
+    element.click()
+
+    # driver.navigate.to("https://client.schwab.com/app/trade/tom/#/trade")
+
+    #time.sleep(5)
+    #element = wait.until(EC.element_to_be_clickable((By.XPATH, '//a[@id="footer-aio"]')))
+    # ActionChains(driver).move_to_element(element).click(element).perform()
+    #element.click() # often gets intercepted
+    #time.sleep(3)
 
     # Loop through accounts
     element = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="basic-example-small"]')))

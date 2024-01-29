@@ -99,6 +99,7 @@ def first_buy_and_sell(driver, wait, buy=[], sell=[], acct=0):
 
         # Enter quantity
         element = wait.until(EC.element_to_be_clickable((By.XPATH, '//input[@id="quantity"]')))
+        element.clear()
         element.send_keys(1)
 
         # Enter ticker and limit prices

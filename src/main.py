@@ -9,6 +9,7 @@ from firstrade import first_buy_and_sell
 from tastytrade import TastyTrade
 from tradier import tradierTrade
 from Schwab import schwab_buy_and_sell
+from Chase import chase_buy_and_sell
 from MerrilEdge import merril_buy_and_sell
 
 # Main
@@ -66,11 +67,11 @@ while 1 == 1:
 ## API First
 ### RobinHood
 robin_trade(buy=buy, sell=sell)
-print("Robinhood orders complete. ------------------------------------")
+print("Robinhood orders complete. -------------------------------------------------------------")
 
 ### Tradier
 tradierTrade(buy=buy, sell=sell)
-print("Tradier orders complete. ------------------------------------")
+print("Tradier orders complete. -------------------------------------------------------------")
 
 ## Browser/Selenium Crawling
 options = uc.ChromeOptions()
@@ -81,15 +82,24 @@ wait = WebDriverWait(driver, 8)
 
 ### Firstrade
 first_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
-print("Firstrade orders complete. ------------------------------------")
-
-### Schwab
-schwab_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
-print("Schwab orders complete. ------------------------------------")
+print("Firstrade orders complete. -------------------------------------------------------------")
 
 ### Fidelity
 fid_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
-print("Fidelity orders complete. ------------------------------------")
+print("Fidelity orders complete. -------------------------------------------------------------")
+
+### Schwab
+schwab_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
+print("Schwab orders complete. -------------------------------------------------------------")
+
+# -------------------------TESTING-----------------------------------------------------------------------------
+### Merril Edge
+merril_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
+print("Merril orders complete. ------------------------------------") # In testing
+
+### Chase
+#chase_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
+print("Chase orders complete. -------------------------------------------------------------")
 
 driver.close()
 driver.quit()
@@ -100,6 +110,4 @@ print("Driver Quit Complete.")
 ##TastyTrade(buy=buy, sell=sell)
 #print("Tasty orders complete. ------------------------------------")
 
-### Merril Edge
-#merril_buy_and_sell(driver=driver, wait=wait, buy=buy, sell=sell)
-#print("Merril orders complete. ------------------------------------") # In testing
+
